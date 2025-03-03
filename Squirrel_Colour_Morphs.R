@@ -35,6 +35,14 @@
 ### Read Data -----
 
 { #run this line to read all data files
+  
+  ## Ful dataset for 22,219 records from 2020
   df_sq_1_31535 <- read_csv("Data/sq_RGB_2020_df_1_31535.csv")
   head(df_sq_1_31535)
+  
+  ## All 31413 records from 2021
+  df_sq_2021 <- read_csv("Data/observations_2021_fixedurls.csv")
+  
+  ## All records from 2020
+  df_sq_2020 <- read_csv("Data/df_2020_complete_data.csv")
 }
