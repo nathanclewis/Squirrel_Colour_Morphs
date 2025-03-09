@@ -22,7 +22,7 @@
 {
   install.packages("BiocManager")
   BiocManager::install("EBImage")
-  }
+}
 
 ### Load Packages and Settings -----
 
@@ -66,7 +66,7 @@ df_sq_2021_noerrors <- df_sq_2021 %>%
   slice(1:10) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check))
 
-### Coord extraction test -----
+### Coordinate extraction -----
 
 ## Function that extracts coordinates from a picture
 locate_box = function(image_url){
@@ -77,11 +77,48 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_coordinates = df_sq_2021_noerrors %>%
+df_2021_1_3 = df_sq_2021_noerrors %>%
   slice(1:3) %>% 
   rowwise() %>%
-  mutate(picture_info = list(locate_box(image_url)))
+  mutate(picture_info = list(locate_box(image_url))) %>%
+  #remove images without two clicks
+  filter(length(picture_info$x) == 2) %>%
+  ungroup() %>%
+  mutate(sq_location = map(picture_info,
+                           ~ c(sort(.[[1]], decreasing = T), 
+                               sort(.[[2]], decreasing = T)))) %>% 
+  unnest_wider(sq_location, names_sep = "_") %>% 
+  # keeps the sq_location to check if code is correct
+  dplyr::rename(color_max_x = sq_location_1,
+                color_min_x = sq_location_2,
+                color_max_y = sq_location_3,
+                color_min_y = sq_location_4) %>% 
+  mutate(across(starts_with("color"), round))
 
-## View the selected coords
-df_coordinates %>% 
-  pull(picture_info)
+### Extract RGB values -----
+
+## Function to extract mean RGBs from an image given the coordinates
+extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
+  readImage(image)[xmin:xmax, ymin:ymax, ] %>% 
+    apply(3, mean)
+}
+
+## Apply extract colour functions and create columns for red, green, and blue values
+df_2021_1_3_col <- df_2021_1_3 %>% 
+  rowwise() %>% 
+  mutate(mean_rgb = list(extract_mean_colour(image_url,
+                                             color_min_x,
+                                             color_max_x,
+                                             color_min_y,
+                                             color_max_y))) %>% 
+  unnest_wider(mean_rgb, names_sep = "_") %>%
+  rename(mean_red = mean_rgb_1,
+         mean_green = mean_rgb_2,
+         mean_blue = mean_rgb_3)
+
+
+### Add new df to existing master df -----
+
+## Generate complete dataset
+df_sq_full <- tibble() %>%
+  rbind(df_2021_1_3_col)
