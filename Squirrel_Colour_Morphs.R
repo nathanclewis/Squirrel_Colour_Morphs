@@ -8,12 +8,19 @@
   # 2. Read libraries second (after downloading them on first use)
   # 3. Read all datasets third
   
-  # Script Format
+  ## Script Format
   ##### Script Description
   #### Script Instructions/Details
   ### Section Header
   ## Description of single code chunk
   # Description of single line
+  
+  ## df naming convention
+  #df_1_2_3_col
+    #1 = year
+    #2 = position in year's file of first image included
+    #3 = position in year's file of last image included
+    #col = includes rgb colour data (if missing, rgbs are not included)
 }
 
 ### Download packages -----
