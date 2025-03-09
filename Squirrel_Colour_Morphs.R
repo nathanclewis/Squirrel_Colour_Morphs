@@ -16,11 +16,22 @@
   # Description of single line
   
   ## df naming convention
-  #df_1_2_3_col
-    #1 = year
-    #2 = position in year's file of first image included
-    #3 = position in year's file of last image included
-    #col = includes rgb colour data (if missing, rgbs are not included)
+  #Example df name: df_1_2_3_4
+    #Position 1 = year
+    #Position 2 = position in year's file of first image included
+    #Position 3 = position in year's file of last image included
+    #Position 4 = includes RGB colour data (if "col", RGBs are included, if
+    #             missing, RGBs are not included)
+  
+  ## Instructions for clicking on squirrel photos
+  # 1. When a squirrel pops up, determine whether the photo is an eastern grey 
+  #    squirrel with a clear patch of fur for you to click a bounding box onto.
+  # 2. If the squirrel does not match the above criteria, hit escape without 
+  #    clicking on the squirrel. If you accidentally click on it, click 3+  more
+  #    times and then hit escape to nullify the bounding box.
+  # 3. If the squirrel does meet the criteria, click two points to form opposite
+  #    corners on the bounding box in which the pixels will have their RGB 
+  #    values extracted, then hit escape to proceed to the next photo.
 }
 
 ### Download packages -----
