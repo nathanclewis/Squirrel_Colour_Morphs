@@ -71,9 +71,6 @@
     
   head(df_2021_completed)
   
-  ## All records from 2019
-  df_2019 <- read_csv("Data/")
-  
   ## All 31,535 records from 2020
   df_2020 <- read_csv("Data/df_2020_complete_data.csv") %>%
     #remove records from outside North America
