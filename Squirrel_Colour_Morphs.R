@@ -7,6 +7,7 @@
   # 1. Pull from github first
   # 2. Read libraries second (after downloading them on first use)
   # 3. Read all datasets third
+  # 4. Push changes to github regularly and before closing RStudio
   
   ## Script Format
   ##### Script Description
@@ -57,30 +58,32 @@
 { #run this line to read all data files
   
   ## Completed dataset (including RGBs) with 22,219 records from 2020
-  df_sq_2020_completed <- read_csv("Data/sq_RGB_2020_df_1_31535.csv") %>%
+  df_2020_completed <- read_csv("Data/sq_RGB_2020_df_1_31535.csv") %>%
     #remove records from outside North America
     filter(latitude.y > 13 & longitude.y < -51)
+  
+  head(df_2020_completed)
   
   ## Partially complete dataset (including RGBs) from 2021
-  df_sq_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20000.csv") %>%
+  df_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20000.csv") %>%
     #remove records from outside North America
-    filter(latitude.y > 13 & longitude.y < -51)
+    filter(latitude > 13 & longitude < -51)
     
-  head(df_sq_2020_completed)
+  head(df_2021_completed)
   
   ## All 31,535 records from 2020
-  df_sq_2020 <- read_csv("Data/df_2020_complete_data.csv") %>%
+  df_2020 <- read_csv("Data/df_2020_complete_data.csv") %>%
     #remove records from outside North America
     filter(latitude.y > 13 & longitude.y < -51)
   
-  head(df_sq_2020)
+  head(df_2020)
   
   ## All 31413 records from 2021
-  df_sq_2021 <- read_csv("Data/df_2021_complete_data.csv") %>%
+  df_2021 <- read_csv("Data/df_2021_complete_data.csv") %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
   
-  head(df_sq_2021)
+  head(df_2021)
   }
 
 ### Test Image URLs and remove rows with invalid URLs -----
@@ -94,7 +97,7 @@ url_check = function(url_in,t=2){
   }  
 
 ## Choose a subset to process and remove invalid URLs
-df_sq_2021_noerrors <- df_sq_2021 %>%
+df_2021_noerrors <- df_2021 %>%
   slice(1:10) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check))
 
@@ -109,7 +112,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_1_3 = df_sq_2021_noerrors %>%
+df_2021_1_3 = df_2021_noerrors %>%
   slice(1:3) %>% 
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
@@ -152,5 +155,9 @@ df_2021_1_3_col <- df_2021_1_3 %>%
 ### Add new df to existing master df -----
 
 ## Generate complete dataset
-df_sq_full <- tibble() %>%
-  rbind(df_2021_1_3_col)
+df_2021_new <- df_2021_completed %>%
+  rbind() #insert name of newly created df here
+
+## Write new csv. Always change the last number in the name to match the highest
+## number clicked through to date before writing
+#write_csv(df_2021_new, "Data/sq_RGB_2021_1_20000.csv")
