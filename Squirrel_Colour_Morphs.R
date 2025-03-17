@@ -57,7 +57,7 @@
 
 { #run this line to read all data files
   
-  ## Completed dataset (including RGBs) with 22,219 records from 2020
+  ## Completed dataset (including RGBs) with 20,594 usable records from 2020
   df_2020_completed <- read_csv("Data/sq_RGB_2020_df_1_31535.csv") %>%
     #remove records from outside North America
     filter(latitude.y > 13 & longitude.y < -51)
@@ -70,6 +70,9 @@
     filter(latitude > 13 & longitude < -51)
     
   head(df_2021_completed)
+  
+  ## All records from 2019
+  df_2019 <- read_csv("Data/")
   
   ## All 31,535 records from 2020
   df_2020 <- read_csv("Data/df_2020_complete_data.csv") %>%
