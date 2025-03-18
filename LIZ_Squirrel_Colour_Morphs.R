@@ -65,7 +65,7 @@
     rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## Partially complete dataset (including RGBs) from 2021
-  df_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20500.csv") %>%
+  df_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20000.csv") %>%
     dplyr::select(id, observed_on, image_url, latitude, longitude, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
