@@ -57,33 +57,31 @@
 
 { #run this line to read all data files
   
-  ## Completed dataset (including RGBs) with 22,219 records from 2020
+  ## Completed dataset (including RGBs) with 20,594 usable records from 2020
   df_2020_completed <- read_csv("Data/sq_RGB_2020_df_1_31535.csv") %>%
+    dplyr::select(inat_id, observed_on, image_url, latitude.y, longitude.y, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
-    filter(latitude.y > 13 & longitude.y < -51)
-  
-  head(df_2020_completed)
+    filter(latitude.y > 13 & longitude.y < -51) %>%
+    rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## Partially complete dataset (including RGBs) from 2021
   df_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20000.csv") %>%
+    dplyr::select(id, observed_on, image_url, latitude, longitude, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
-  
-  head(df_2021_completed)
   
   ## All 31,535 records from 2020
   df_2020 <- read_csv("Data/df_2020_complete_data.csv") %>%
+    dplyr::select(inat_id, observed_on, image_url, latitude.y, longitude.y) %>%
     #remove records from outside North America
-    filter(latitude.y > 13 & longitude.y < -51)
-  
-  head(df_2020)
+    filter(latitude.y > 13 & longitude.y < -51) %>%
+    rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## All 31413 records from 2021
   df_2021 <- read_csv("Data/df_2021_complete_data.csv") %>%
+    dplyr::select(id, observed_on, image_url, latitude, longitude) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
-  
-  head(df_2021)
 }
 
 ### Test Image URLs and remove rows with invalid URLs -----
@@ -98,7 +96,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2021_noerrors <- df_2021 %>%
-  slice(1:10) %>%
+  slice(20001:20500) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == "TRUE")
 
@@ -113,8 +111,8 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_1_3 = df_2021_noerrors %>%
-  slice(1:3) %>% 
+df_2021_20001_20500 = df_2021_noerrors %>%
+  #slice(1:3) %>% 
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
   #remove images without two clicks
@@ -140,25 +138,23 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_1_3_col <- df_2021_1_3 %>% 
-  rowwise() %>% 
-  mutate(mean_rgb = list(extract_mean_colour(image_url,
-                                             color_min_x,
-                                             color_max_x,
-                                             color_min_y,
-                                             color_max_y))) %>% 
+df_2021_20001_20500_col <- df_2021_20001_20500 %>%
+  mutate(mean_rgb = future_pmap(
+    list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
+    ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
+  )) %>% 
   unnest_wider(mean_rgb, names_sep = "_") %>%
-  rename(mean_red = mean_rgb_1,
-         mean_green = mean_rgb_2,
-         mean_blue = mean_rgb_3)
-
+  rename(red = mean_rgb_1,
+         green = mean_rgb_2,
+         blue = mean_rgb_3) %>%
+  dplyr::select(-c(mean_rgb_4))
 
 ### Add new df to existing master df -----
 
 ## Generate complete dataset
 df_2021_new <- df_2021_completed %>%
-  rbind() #insert name of newly created df here
+  rbind(df_2021_20001_20500_col) #insert name of newly created df here
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-#write_csv(df_2021_new, "Data/sq_RGB_2021_1_20000.csv")  
+#write_csv(df_2021_new, "Data/sq_RGB_2021_1_20500.csv")
