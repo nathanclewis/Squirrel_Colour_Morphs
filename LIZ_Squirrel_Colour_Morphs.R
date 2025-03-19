@@ -138,7 +138,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_20001_20500_col <- df_2021_20001_20500 %>%
+df_2021_20501_21000_col <- df_2021_20501_21000 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -147,7 +147,7 @@ df_2021_20001_20500_col <- df_2021_20001_20500 %>%
   rename(red = mean_rgb_1,
          green = mean_rgb_2,
          blue = mean_rgb_3) %>%
-  dplyr::select(-c(mean_rgb_4))
+  dplyr::select(-c(mean_rgb_4, valid_url, picture_info))
 
 ### Add new df to existing master df -----
 

@@ -65,7 +65,7 @@
     rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## Partially complete dataset (including RGBs) from 2021
-  df_2021_completed <- read_csv("Data/sq_RGB_2021_df_1_20500.csv") %>%
+  df_2021_completed <- read_csv("Data/sq_RGB_2021_1_21000.csv") %>%
     dplyr::select(id, observed_on, image_url, latitude, longitude, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
@@ -96,7 +96,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2021_noerrors <- df_2021 %>%
-  slice(20001:20500) %>%
+  slice(20501:21000) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == "TRUE")
 
@@ -111,8 +111,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_20001_20500 = df_2021_noerrors %>%
-  #slice(1:3) %>% 
+df_2021_20501_21000 = df_2021_noerrors %>%
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
   #remove images without two clicks
@@ -138,7 +137,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_20001_20500_col <- df_2021_20001_20500 %>%
+df_2021_20501_21000_col <- df_2021_20501_21000 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -147,14 +146,14 @@ df_2021_20001_20500_col <- df_2021_20001_20500 %>%
   rename(red = mean_rgb_1,
          green = mean_rgb_2,
          blue = mean_rgb_3) %>%
-  dplyr::select(-c(mean_rgb_4))
+  dplyr::select(-c(mean_rgb_4, valid_url, picture_info))
 
 ### Add new df to existing master df -----
 
 ## Generate complete dataset
 df_2021_new <- df_2021_completed %>%
-  rbind(df_2021_20001_20500_col) #insert name of newly created df here
+  rbind(df_2021_20501_21000_col) #insert name of newly created df here
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-#write_csv(df_2021_new, "Data/sq_RGB_2021_1_20500.csv")
+write_csv(df_2021_new, "Data/sq_RGB_2021_1_21000.csv")
