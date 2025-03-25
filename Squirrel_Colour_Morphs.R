@@ -65,7 +65,7 @@
     rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## Partially complete dataset (including RGBs) from 2021
-  df_2021_completed <- read_csv("Data/sq_RGB_2021_1_21000.csv") %>%
+  df_2021_completed <- read_csv("Data/sq_RGB_2021_1_22000.csv") %>%
     dplyr::select(id, observed_on, image_url, latitude, longitude, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
@@ -96,7 +96,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2021_noerrors <- df_2021 %>%
-  slice(20501:21000) %>%
+  slice(22001:22500) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == "TRUE")
 
@@ -111,7 +111,8 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_20501_21000 = df_2021_noerrors %>%
+df_2021_22001_22200 = df_2021_noerrors %>%
+  #slice() %>%
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
   #remove images without two clicks
@@ -137,7 +138,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_20501_21000_col <- df_2021_20501_21000 %>%
+df_2021_22001_22200_col <- df_2021_22001_22200 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -152,8 +153,8 @@ df_2021_20501_21000_col <- df_2021_20501_21000 %>%
 
 ## Generate complete dataset
 df_2021_new <- df_2021_completed %>%
-  rbind(df_2021_20501_21000_col) #insert name of newly created df here
+  rbind(df_2021_22001_22200_col) #insert name of newly created df here
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-write_csv(df_2021_new, "Data/sq_RGB_2021_1_21000.csv")
+#write_csv(df_2021_new, "Data/sq_RGB_2021_1_22200.csv")
