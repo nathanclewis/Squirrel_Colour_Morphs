@@ -1,4 +1,5 @@
 ##### Analyses and data visualizations for the squirrel colour morphs project
+## Liz's copy - 2019 photo set
 
 #### Script Info/Instructions -----
 
@@ -84,6 +85,19 @@
     filter(latitude > 13 & longitude < -51)
 }
 
+### Read Data for 2019 ----
+
+## Records from 2019 (n = 16,993)
+df_2019 = read_csv("Data/observations_2019.csv") %>% 
+  dplyr::select(id, observed_on, image_url, latitude, longitude) %>% 
+  #remove records from outside North America
+  filter(latitude > 13 & longitude < -51)
+
+df_2019_completed = read_csv("Data/sq_RGB_2019_1_750.csv") 
+#use most recently created sq_RGB_2019_1_XXXX
+
+df_2019 %>% view()
+
 ### Test Image URLs and remove rows with invalid URLs -----
 
 ## Create a function that identifies invalid image URLs
@@ -95,11 +109,12 @@ url_check = function(url_in,t=2){
 }  
 
 ## Choose a subset to process and remove invalid URLs
-df_2021_noerrors <- df_2021 %>%
-  slice(20001:20500) %>%
+df_2019_noerrors = df_2019 %>%
+  slice(751:1000) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == "TRUE")
 
+df_2019_noerrors %>% view()
 ### Coordinate extraction -----
 
 ## Function that extracts coordinates from a picture
@@ -111,7 +126,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_20001_20500 = df_2021_noerrors %>%
+df_2019_751_1000 = df_2019_noerrors %>%
   #slice(1:3) %>% 
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
@@ -129,6 +144,7 @@ df_2021_20001_20500 = df_2021_noerrors %>%
                 color_min_y = sq_location_4) %>% 
   mutate(across(starts_with("color"), round))
 
+df_2019_501_750 %>% view()
 ### Extract RGB values -----
 
 ## Function to extract mean RGBs from an image given the coordinates
@@ -138,7 +154,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_20501_21000_col <- df_2021_20501_21000 %>%
+df_2019_751_1000_col = df_2019_751_1000 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -147,14 +163,17 @@ df_2021_20501_21000_col <- df_2021_20501_21000 %>%
   rename(red = mean_rgb_1,
          green = mean_rgb_2,
          blue = mean_rgb_3) %>%
-  dplyr::select(-c(mean_rgb_4, valid_url, picture_info))
+  dplyr::select(-c(valid_url, picture_info))
 
+df_2019_751_1000_col %>% view()
 ### Add new df to existing master df -----
 
 ## Generate complete dataset
-df_2021_new <- df_2021_completed %>%
-  rbind(df_2021_20001_20500_col) #insert name of newly created df here
+df_2019_new = df_2019_completed %>%
+  rbind(df_2019_751_1000_col) #insert name of newly created df here
+
+df_2019_new %>% view()
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-#write_csv(df_2021_new, "Data/sq_RGB_2021_1_20500.csv")
+write_csv(df_2019_new, "Data/sq_RGB_2019_1_1000.csv")
