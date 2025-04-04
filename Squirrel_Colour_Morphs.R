@@ -65,7 +65,7 @@
     rename(id = inat_id, latitude = latitude.y, longitude = longitude.y)
   
   ## Partially complete dataset (including RGBs) from 2021
-  df_2021_completed <- read_csv("Data/sq_RGB_2021_1_23500.csv") %>%
+  df_2021_completed <- read_csv("Data/sq_RGB_2021_1_23750.csv") %>%
     dplyr::select(id, observed_on, image_url, latitude, longitude, color_max_x, color_min_x, color_max_y, color_min_y, red, green, blue) %>%
     #remove records from outside North America
     filter(latitude > 13 & longitude < -51)
@@ -96,7 +96,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2021_noerrors <- df_2021 %>%
-  slice(23501:23750) %>%
+  slice(23751:24000) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == "TRUE")
 
@@ -111,7 +111,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2021_23501_23750 = df_2021_noerrors %>%
+df_2021_23751_24000 = df_2021_noerrors %>%
   #slice() %>%
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
