@@ -139,7 +139,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2021_25001_25250_col <- df_2021_25001_25250 %>%
+df_2021_25251_25500_col <- df_2021_25251_25500 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -154,8 +154,8 @@ df_2021_25001_25250_col <- df_2021_25001_25250 %>%
 
 ## Generate complete dataset
 df_2021_new <- df_2021_completed %>%
-  rbind(df_2021_25001_25250_col) #insert name of newly created df here
+  rbind(df_2021_25251_25500_col) #insert name of newly created df here
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-write_csv(df_2021_new, "Data/sq_RGB_2021_1_25250.csv")
+#write_csv(df_2021_new, "Data/sq_RGB_2021_1_25500.csv")
