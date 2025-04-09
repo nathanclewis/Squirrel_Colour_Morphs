@@ -111,8 +111,9 @@ url_check = function(url_in,t=2){
 ## Choose a subset to process and remove invalid URLs
 df_2019_noerrors = df_2019 %>%
   slice(751:1000) %>%
+  filter(!str_detect(image_url, "gif$")) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
-  filter(valid_url == "TRUE")
+  filter(valid_url == TRUE)
 
 df_2019_noerrors %>% view()
 ### Coordinate extraction -----
