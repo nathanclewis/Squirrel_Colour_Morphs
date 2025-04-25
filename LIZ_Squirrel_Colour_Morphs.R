@@ -93,7 +93,7 @@ df_2019 = read_csv("Data/observations_2019.csv") %>%
   #remove records from outside North America
   filter(latitude > 13 & longitude < -51)
 
-df_2019_completed = read_csv("Data/sq_RGB_2019_1_750.csv") 
+df_2019_completed = read_csv("Data/sq_RGB_2019_1_1500.csv") 
 #use most recently created sq_RGB_2019_1_XXXX
 
 df_2019 %>% view()
@@ -110,7 +110,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2019_noerrors = df_2019 %>%
-  slice(751:1000) %>%
+  slice(1501:2000) %>%
   filter(!str_detect(image_url, "gif$")) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == TRUE)
@@ -127,7 +127,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2019_751_1000 = df_2019_noerrors %>%
+df_2019_1501_2000 = df_2019_noerrors %>%
   #slice(1:3) %>% 
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
@@ -145,7 +145,7 @@ df_2019_751_1000 = df_2019_noerrors %>%
                 color_min_y = sq_location_4) %>% 
   mutate(across(starts_with("color"), round))
 
-df_2019_501_750 %>% view()
+df_2019_1001_1500 %>% view()
 ### Extract RGB values -----
 
 ## Function to extract mean RGBs from an image given the coordinates
@@ -155,7 +155,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2019_751_1000_col = df_2019_751_1000 %>%
+df_2019_1501_2000_col = df_2019_1501_2000 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -164,17 +164,39 @@ df_2019_751_1000_col = df_2019_751_1000 %>%
   rename(red = mean_rgb_1,
          green = mean_rgb_2,
          blue = mean_rgb_3) %>%
-  dplyr::select(-c(valid_url, picture_info))
+  dplyr::select(-c(valid_url, picture_info, mean_rgb_4))
 
-df_2019_751_1000_col %>% view()
+
+
+df_2019_1001_1500_col %>% view()
 ### Add new df to existing master df -----
 
 ## Generate complete dataset
 df_2019_new = df_2019_completed %>%
-  rbind(df_2019_751_1000_col) #insert name of newly created df here
+  rbind(df_2019_1501_2000_col) #insert name of newly created df here
 
 df_2019_new %>% view()
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-write_csv(df_2019_new, "Data/sq_RGB_2019_1_1000.csv")
+write_csv(df_2019_new, "Data/sq_RGB_2019_1_2000.csv")
+
+
+## check error
+safe_extract <- purrr::safely(extract_mean_colour)
+results <- future_pmap(
+  list(df_2019_1001_1500$image_url,
+       df_2019_1001_1500$color_min_x,
+       df_2019_1001_1500$color_max_x,
+       df_2019_1001_1500$color_min_y,
+       df_2019_1001_1500$color_max_y),
+  ~ safe_extract(..1, ..2, ..3, ..4, ..5)
+)
+
+df_2019_1001_1500$mean_rgb <- map(results, "result")
+df_2019_1001_1500$error    <- map(results, "error")
+
+problem_rows <- df_2019_1001_1500 %>%
+  filter(!map_lgl(error, is.null))
+
+print(problem_rows)
