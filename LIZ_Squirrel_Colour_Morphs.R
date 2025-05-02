@@ -93,7 +93,7 @@ df_2019 = read_csv("Data/observations_2019.csv") %>%
   #remove records from outside North America
   filter(latitude > 13 & longitude < -51)
 
-df_2019_completed = read_csv("Data/sq_RGB_2019_1_4000.csv") 
+df_2019_completed = read_csv("Data/sq_RGB_2019_1_4500.csv") 
 #use most recently created sq_RGB_2019_1_XXXX
 
 df_2019 %>% view()
@@ -110,7 +110,7 @@ url_check = function(url_in,t=2){
 
 ## Choose a subset to process and remove invalid URLs
 df_2019_noerrors = df_2019 %>%
-  slice(4001:4500) %>%
+  slice(4501:4750) %>%
   filter(!str_detect(image_url, "gif$")) %>%
   mutate(valid_url = future_map_lgl(image_url, url_check)) %>%
   filter(valid_url == TRUE)
@@ -127,7 +127,7 @@ locate_box = function(image_url){
 }
 
 ## Apply it to a short list
-df_2019_4001_4500 = df_2019_noerrors %>%
+df_2019_4501_4750 = df_2019_noerrors %>%
   #slice(1:3) %>% 
   rowwise() %>%
   mutate(picture_info = list(locate_box(image_url))) %>%
@@ -155,7 +155,7 @@ extract_mean_colour = function(image, xmin, xmax, ymin, ymax){
 }
 
 ## Apply extract colour functions and create columns for red, green, and blue values
-df_2019_4001_4500_col = df_2019_4001_4500 %>%
+df_2019_4501_4750_col = df_2019_4501_4750 %>%
   mutate(mean_rgb = future_pmap(
     list(image_url, color_min_x, color_max_x, color_min_y, color_max_y),
     ~ extract_mean_colour(..1, ..2, ..3, ..4, ..5)
@@ -173,15 +173,15 @@ df_2019_4001_4500_col = df_2019_4001_4500 %>%
 
 ## Generate complete dataset
 df_2019_new = df_2019_completed %>%
-  rbind(df_2019_4001_4500_col) #insert name of newly created df here
+  rbind(df_2019_4501_4750_col) #insert name of newly created df here
 
 df_2019_new %>% view()
 
 ## Write new csv. Always change the last number in the name to match the highest
 ## number clicked through to date before writing
-write_csv(df_2019_new, "Data/sq_RGB_2019_1_4500.csv")
-#write_csv(df_2019_4001_4500, "Data/df_2019_4001_4500.csv")
-#df_2019_4001_4500 = read_csv("Data/df_2019_4001_4500.csv")
+write_csv(df_2019_new, "Data/sq_RGB_2019_1_4750.csv")
+#write_csv(df_2019_4501_4750, "Data/df_2019_4501_4750.csv")
+#df_2019_4501_4750 = read_csv("Data/df_2019_4501_4750.csv")
 
 ## check error
 safe_extract <- purrr::safely(extract_mean_colour)
